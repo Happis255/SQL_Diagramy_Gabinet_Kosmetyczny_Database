@@ -1,4 +1,4 @@
--- [1a] Utworz konto dla klienta oraz uzuep³nij jego dane (potrzebne jest jeszcze [1b] i [1c] do pe³nego utworzenia klienta //patrz ni¿ej)
+-- [1a] Utworz konto dla klienta oraz uzuepÅ‚nij jego dane (potrzebne jest jeszcze [1b] i [1c] do peÅ‚nego utworzenia klienta //patrz niÅ¼ej)
 
 DELIMITER //
 CREATE PROCEDURE utworz_klienta(
@@ -52,7 +52,7 @@ BEGIN
          UPDATE klient SET id_karty = @id_karty WHERE klient.e_mail = p_email;
 END //
 
--- [2] Utwórz nowy status klienta
+-- [2] UtwÃ³rz nowy status klienta
 
 DELIMITER //
 CREATE PROCEDURE utworz_status_klienta(
@@ -78,7 +78,7 @@ BEGIN
     UPDATE klient SET ilosc_punktow = @new_punkty, id_statusu = @new_id_statusu WHERE klient.e_mail = p_email;
 END //
 
--- [4] Utwórz pracownika, przypisz mu ksi¹¿eczkê zdrowia i konto|
+-- [4] UtwÃ³rz pracownika, przypisz mu ksiÅ¡Å¼eczkÄ™ zdrowia i konto|
 
 DELIMITER //
 CREATE PROCEDURE utworz_pracownika(
@@ -164,7 +164,7 @@ BEGIN
 	INSERT INTO promocja(ID_PROMOCJI, NAZWA, OPIS, ZNIZKA_PROC, ZNIZKA_KWOT, DATA_OD, DATA_DO, ID_PRACOWNIKA) VALUES (@ID_PROMOCJI, P_NAZWA, P_OPIS, P_ZNIZKA_PROC, P_ZNIZKA_KWOT, P_DATA_OD, P_DATA_DO, P_ID_PRACOWNIKA); 
 END //
 
--- [10.] Dodaj produkty na sprzeda¿ 
+-- [10.] Dodaj produkty na sprzedaÅ¼ 
 
 DELIMITER //
 CREATE PROCEDURE dodaj_produkt_sprzedaz( 
@@ -177,7 +177,7 @@ BEGIN
 	INSERT INTO produkt_sprzedaz(ID_PRODUKTU_S, NAZWA, OPIS, CENA, ILOSC) VALUES (@ID_PRODUKTU_S, P_NAZWA, P_OPIS, P_CENA, P_ILOSC); 
 END //
 
--- [11.] Dodaj produkty do u¿ytku w gabinecie
+-- [11.] Dodaj produkty do uÅ¼ytku w gabinecie
 
 DELIMITER //
 CREATE PROCEDURE dodaj_produkt_uzytkowy( 
@@ -220,7 +220,7 @@ BEGIN
 END //
 
 
--- [14.] Dodaj us³ugom style
+-- [14.] Dodaj usÅ‚ugom style
 
 DELIMITER //
 CREATE PROCEDURE dodaj_styl_usl(  
@@ -247,7 +247,7 @@ BEGIN
 END //
 
 
--- [15.b] P³atnoœæ do koszyka
+-- [15.b] PÅ‚atnoÂœÄ‡ do koszyka
 
 DELIMITER //
 CREATE PROCEDURE koszyk_platnosc(  
@@ -350,7 +350,7 @@ BEGIN
 END //
 
 
--- [21.] Raport odpadów
+-- [21.] Raport odpadÃ³w
 
 
 DELIMITER //
@@ -523,7 +523,7 @@ BEGIN
 	UPDATE produkt_sprzedaz SET ID_PROMOCJI = P_ID_PROMOCJI WHERE ID_PRODUKTU_S = P_ID_PRODUKTU_S;
 END //
 
--- [32.] Dodaj us³ugê do promocji
+-- [32.] Dodaj usÅ‚ugÄ™ do promocji
 
 DELIMITER //
 CREATE PROCEDURE promocja_usluga(
@@ -544,7 +544,7 @@ BEGIN
 SELECT * FROM aktualnosc WHERE CURRENT_DATE > aktualnosc.data_od AND CURRENT_DATE < aktualnosc.data_do;
 END //
 
--- [34] Pobierz dane o koncie w zale¿noœci od typu konta
+-- [34] Pobierz dane o koncie w zaleÅ¼noÂœci od typu konta
 
 DELIMITER //
 CREATE PROCEDURE pobierz_dane(
@@ -561,7 +561,7 @@ end if;
 
 END //
 
--- [35] Usuñ klienta
+-- [35] UsuÅ„ klienta
 
 DELIMITER //
 CREATE PROCEDURE usun_klient(
@@ -580,7 +580,7 @@ CALL usun_konto(@id_konta);
 
 END //
 
--- [36] Usuñ pracownika
+-- [36] UsuÅ„ pracownika
 
 DELIMITER //
 CREATE PROCEDURE usun_pracownik(
@@ -592,7 +592,7 @@ UPDATE pracownik SET ulica = "-", kod_pocztowy = "-", miejscowosc = "-", data_ur
 
 END //
 
--- [37] Zmieñ has³o konta
+-- [37] ZmieÅ„ hasÅ‚o konta
 
 DELIMITER //
 CREATE PROCEDURE zmien_haslo(
@@ -605,7 +605,7 @@ UPDATE konto SET haslo = p_haslo WHERE id_konta = p_id_konta;
 
 END //
 
--- [38] Usuñ konto
+-- [38] UsuÅ„ konto
 
 DELIMITER //
 CREATE PROCEDURE usun_konto(
@@ -617,7 +617,7 @@ UPDATE konto SET haslo = "-" WHERE id_konta = p_id_konta;
 
 END //
 
--- [39] Usuñ ksi¹¿eczkê zdrowia
+-- [39] UsuÅ„ ksiÅ¡Å¼eczkÄ™ zdrowia
 
 
 DELIMITER //
@@ -631,7 +631,7 @@ ksiazeczka_zdrowia.oslabienie = "-", ksiazeczka_zdrowia.ciaza = 0 WHERE id_ksiaz
 
 END //
 
--- [40] Usuñ kartê klienta
+-- [40] UsuÅ„ kartÄ™ klienta
 
 DELIMITER //
 CREATE PROCEDURE usun_karta_klienta(
@@ -644,7 +644,7 @@ UPDATE karta_klienta SET p1 = 0, p2 = 0, p3 = 0, p4 =0, p5 = 0, p6 = 0, p7 = 0, 
 END //
 
 
--- [41] Pobierz dane u¿ytkownika wed³ug typu konta
+-- [41] Pobierz dane uÅ¼ytkownika wedÅ‚ug typu konta
 
 DELIMITER //
 CREATE PROCEDURE pobierz_dane_uzytkownikow_typu(
@@ -662,7 +662,7 @@ end if;
 
 END //
 
--- [42] Edytuj dane o sprzêcie
+-- [42] Edytuj dane o sprzÄ™cie
 
 DELIMITER //
 CREATE PROCEDURE edytuj_sprzet(
@@ -677,7 +677,7 @@ BEGIN
 	UPDATE sprzet SET NAZWA_SPRZETU = P_NAZWA_SPRZETU, OPIS_SPRZETU = P_OPIS_SPRZETU, DATA_ZAKUPU = P_DATA_ZAKUPU, DATA_GWARANCJI = P_DATA_GWARANCJI, UWAGI = P_UWAGI WHERE ID_SPRZETU = P_ID_SPRZETU; 
 END //
 
--- [43] Pobierz dane o sprzêcie
+-- [43] Pobierz dane o sprzÄ™cie
 
 DELIMITER //
 CREATE PROCEDURE dane_sprzet(
@@ -688,7 +688,7 @@ BEGIN
 END //
 
 
--- [44] PotwierdŸ nieobecnoœæ
+-- [44] PotwierdÂŸ nieobecnoÂœÄ‡
 
 DELIMITER //
 CREATE PROCEDURE potwr_nieob(
@@ -699,7 +699,7 @@ BEGIN
 END //
 
 
--- [45] Usuñ sprzêt
+-- [45] UsuÅ„ sprzÄ™t
 
 
 DELIMITER //
@@ -707,11 +707,11 @@ CREATE PROCEDURE usun_sprzet(
     P_ID_SPRZETU INT(8)
 ) 
 BEGIN 
-	UPDATE sprzet SET UWAGI = "Sprzêt nie jest ju¿ w u¿ytku" WHERE ID_SPRZETU = P_ID_SPRZETU; 
+	UPDATE sprzet SET UWAGI = "SprzÄ™t nie jest juÅ¼ w uÅ¼ytku" WHERE ID_SPRZETU = P_ID_SPRZETU; 
 END //
 
 
--- [46] Wypisz us³ugi w przedziale czasowym
+-- [46] Wypisz usÅ‚ugi w przedziale czasowym
 
 DELIMITER //
 CREATE PROCEDURE uslugi_w_dniach(
@@ -723,7 +723,7 @@ BEGIN
 END //
 
 
--- [47] Wypisz us³ugi wed³ug ID klienta
+-- [47] Wypisz usÅ‚ugi wedÅ‚ug ID klienta
 
 DELIMITER //
 CREATE PROCEDURE uslugi_dla_klienta(
@@ -733,7 +733,7 @@ BEGIN
 	SELECT * FROM wizyta w JOIN usluga u ON w.id_uslugi = u.id_uslugi WHERE id_klienta = p_id_klienta;
 END //
 
--- [48] Wypisz us³ugi wed³ug ID pracownika
+-- [48] Wypisz usÅ‚ugi wedÅ‚ug ID pracownika
 
 
 DELIMITER //
@@ -744,7 +744,7 @@ BEGIN
 	SELECT * FROM wizyta w JOIN usluga u ON w.id_uslugi = u.id_uslugi WHERE id_pracownika = p_id_pracownika;
 END //
 
--- [49] Pobierz wskazówki przygotowania do zabiegu
+-- [49] Pobierz wskazÃ³wki przygotowania do zabiegu
 
 DELIMITER //
 CREATE PROCEDURE wskazowki_do_zabiegu(
@@ -754,7 +754,7 @@ BEGIN
 	SELECT wskazowki FROM usluga WHERE id_uslugi = p_id_uslugi;
 END //
 
--- [50] Wypisz nieobecnoœci w przedziale czasowym
+-- [50] Wypisz nieobecnoÂœci w przedziale czasowym
 
 DELIMITER //
 CREATE PROCEDURE nieob_w_dniach(
@@ -765,7 +765,7 @@ BEGIN
 	SELECT * FROM nieobecnosc WHERE data_od >= date(p_data_od) AND data_do <= date(p_data_do) ;
 END //
 
--- [51] Wypisz nieobecnoœci pracownika
+-- [51] Wypisz nieobecnoÂœci pracownika
 
 DELIMITER //
 CREATE PROCEDURE nieob_pracownika(
@@ -796,7 +796,7 @@ BEGIN
 	UPDATE zadanie_gospodarcze SET id_pracownika = p_id_pracownika WHERE id_zadania = p_id_zadania;
 END //
 
--- [54] Pobierz dane us³ugi i stylu, jeœli jest
+-- [54] Pobierz dane usÅ‚ugi i stylu, jeÂœli jest
 
 DELIMITER //
 CREATE PROCEDURE info_usluga(
@@ -810,7 +810,7 @@ BEGIN
     END IF;
 END //
 
--- [55] Wypisz nieobecnoœci i wizyty pracownika
+-- [55] Wypisz nieobecnoÂœci i wizyty pracownika
 
 DELIMITER //
 CREATE PROCEDURE wizyty_nieob_prac(
@@ -820,7 +820,7 @@ BEGIN
 	SELECT * FROM nieobecnosc n JOIN wizyta w ON n.id_pracownika = w.id_pracownika WHERE n.id_pracownika = p_id_pracownika;
 END //
 
--- [56] Wypisz koszyki i ich zawartoœæ dla danego klienta
+-- [56] Wypisz koszyki i ich zawartoÂœÄ‡ dla danego klienta
 
 DELIMITER //
 CREATE PROCEDURE zakupy_klienta(
@@ -840,7 +840,7 @@ BEGIN
 	SELECT p.* FROM koszyk k JOIN platnosc p ON k.id_koszyka = p.id_koszyka WHERE k.id_klienta = p_id_klienta;
 END //
 
--- [58] Wypisz wszystkie dane z tabeli aktualnoœci
+-- [58] Wypisz wszystkie dane z tabeli aktualnoÂœci
 
 DELIMITER //
 CREATE PROCEDURE pokaz_aktualnosci(
@@ -849,7 +849,7 @@ BEGIN
 	SELECT * FROM aktualnosc;
 END //
 
--- [59] Usuñ promocjê
+-- [59] UsuÅ„ promocjÄ™
 
 DELIMITER //
 CREATE PROCEDURE usun_promocje(
@@ -866,14 +866,14 @@ BEGIN
 	END IF;
 END //
 
--- [60] Usuñ us³ugê
+-- [60] UsuÅ„ usÅ‚ugÄ™
 
 DELIMITER //
 CREATE PROCEDURE usun_usluge(
     p_id_uslugi INT(8)
 ) 
 BEGIN 
-	UPDATE usluga SET opis = "us³uga nie jest wykonywana" WHERE id_uslugi = p_id_uslugi;
+	UPDATE usluga SET opis = "usÅ‚uga nie jest wykonywana" WHERE id_uslugi = p_id_uslugi;
 END //
 
 -- [61] Edytuj dane pracownika
@@ -937,7 +937,7 @@ BEGIN
 	SELECT certyfikaty FROM pracownik WHERE id_pracownika = p_id_pracownika;
 END //
 
--- [65] Wypisz przypomnienia na bie¿¹cy dzieñ
+-- [65] Wypisz przypomnienia na bieÅ¼Å¡cy dzieÅ„
 
 DELIMITER //
 CREATE PROCEDURE pobierz_przypomnienia_na_dzis(
@@ -946,7 +946,7 @@ BEGIN
 SELECT * FROM przypomnienie WHERE CURRENT_DATE = przypomnienie.data;
 END //
 
--- [66] Wypisz raporty z przedzia³u czasowego
+-- [66] Wypisz raporty z przedziaÅ‚u czasowego
 
 DELIMITER //
 CREATE PROCEDURE raporty_w_dniach(
@@ -968,7 +968,7 @@ BEGIN
 	SELECT SUM(koszt*ilos) AS bilnas FROM raport_odpadow WHERE data >= date(p_data_od) AND data <= date(p_data_do);
 END //
 
--- [68] Edytuj iloœæ produktów u¿ytkowych na stanie
+-- [68] Edytuj iloÂœÄ‡ produktÃ³w uÅ¼ytkowych na stanie
 
 DELIMITER //
 CREATE PROCEDURE ile_produkt_uzytkowy(
@@ -979,7 +979,7 @@ BEGIN
 	UPDATE produkt_uzytkowy SET ilosc = p_ilosc WHERE id_produktu = p_id_produktu;
 END //
 
--- [69] Edytuj iloœæ produktów na sprzeda¿ na stanie
+-- [69] Edytuj iloÂœÄ‡ produktÃ³w na sprzedaÅ¼ na stanie
 
 DELIMITER //
 CREATE PROCEDURE ile_produkt_sprzedaz(
@@ -990,7 +990,7 @@ BEGIN
 	UPDATE produkt_sprzedaz SET ilosc = p_ilosc WHERE id_produktu_s = p_id_produktu_s;
 END //
 
--- [70] Pobierz dane dotycz¹ce listy zakupowej
+-- [70] Pobierz dane dotyczÅ¡ce listy zakupowej
 
 DELIMITER //
 CREATE PROCEDURE info_o_liscie_zakup(
@@ -1023,7 +1023,7 @@ BEGIN
 	UPDATE karta_klienta SET p1 = p_p1, p2 = p_p2, p3 = p_p3, p4 = p_p4, p5 = p_p5, p6 = p_p6, p7 = p_p7, p8 = p_p8, p9 = p_p9, ocena_skory = p_ocena_skory, rodzaj_jakosc = p_rodzaj_jakosc, wrazliwosc = p_wrazliwosc, inne_uwagi = p_inne_uwagi WHERE id_karty = @id_karty;
 END //
 
--- [72] Edycja Ksi¹¿eczki Zdrowia
+-- [72] Edycja KsiÅ¡Å¼eczki Zdrowia
 
 DELIMITER //
 CREATE PROCEDURE edytuj_ksiazeczke(
@@ -1054,7 +1054,7 @@ BEGIN
 	SELECT kk.* FROM karta_klienta kk JOIN klient k ON kk.id_karty = k.id_karty WHERE k.id_klienta = p_id_klienta;
 END //
 
--- [74] Pobranie Ksi¹¿eczki konkretnego pracownika
+-- [74] Pobranie KsiÅ¡Å¼eczki konkretnego pracownika
 
 DELIMITER //
 CREATE PROCEDURE pobierz_ksiazeczke(
@@ -1064,7 +1064,7 @@ BEGIN
 	SELECT * FROM ksiazeczka_zdrowia WHERE ksiazeczka_zdrowia.id_ksiazeczki = p_id_ksiazeczki;
 END //
 
--- [75] Pobierz aktualnoœci i podaj nazwisko pracownika, który je doda³
+-- [75] Pobierz aktualnoÂœci i podaj nazwisko pracownika, ktÃ³ry je dodaÅ‚
 
 DELIMITER //
 CREATE PROCEDURE pokaz_aktualnosci_pracownik(
@@ -1073,7 +1073,7 @@ BEGIN
     SELECT a.id_aktualnosci, a.tytul, a.tresc, a.data_od, a.data_do, b.nazwisko FROM aktualnosc a JOIN pracownik b ON a.id_pracownika = b.id_pracownika;
 END //
 
--- [76] Wypisz sprawozdania z przedzia³u czasowego
+-- [76] Wypisz sprawozdania z przedziaÅ‚u czasowego
 
 DELIMITER //
 CREATE PROCEDURE sprawozdania_w_dniach(
@@ -1084,7 +1084,7 @@ BEGIN
 	SELECT * FROM sprawozdanie WHERE data >= date(p_data_od) AND data <= date(p_data_do);
 END //
 
--- [77] Wypisz przegl¹dy z przedzia³u czasowego
+-- [77] Wypisz przeglÅ¡dy z przedziaÅ‚u czasowego
 
 DELIMITER //
 CREATE PROCEDURE przeglady_w_dniach(
@@ -1095,7 +1095,7 @@ BEGIN
 	SELECT * FROM przeglad WHERE data >= date(p_data_od) AND data <= date(p_data_do);
 END //
 
--- [78] Wypisz zadania gospodarcze z przedzia³u czasowego
+-- [78] Wypisz zadania gospodarcze z przedziaÅ‚u czasowego
 
 DELIMITER //
 CREATE PROCEDURE zadania_w_dniach(
@@ -1126,7 +1126,7 @@ BEGIN
     UPDATE nieobecnosc SET STATUS = 'NIEPOTWIERDZONE' WHERE id_nieobecnosci = P_ID_NIEOBECNOSCI;
 END //
 
--- [81] - Nowe nadawanie uprawnienia do wykonywania us³ugi
+-- [81] - Nowe nadawanie uprawnienia do wykonywania usÅ‚ugi
 
 DELIMITER //
 CREATE PROCEDURE nadaj_uprawnienie_uslugowe(
@@ -1147,7 +1147,7 @@ BEGIN
 SELECT * FROM sprawozdanie WHERE sprawozdanie.id_pracownika = p_id_pracownika;
 END //
 
--- [83] Usuñ raport
+-- [83] UsuÅ„ raport
 
 DELIMITER //
 CREATE PROCEDURE usun_sprawozdanie(
@@ -1209,7 +1209,7 @@ BEGIN
         promocja.id_promocji = P_ID_PROMOCJI ;
 END //
 
--- [86] Pobranie przegl¹dów pracownika o id
+-- [86] Pobranie przeglÅ¡dÃ³w pracownika o id
 
 DELIMITER //
 CREATE PROCEDURE pobierz_przeglady_pracownika(
@@ -1220,7 +1220,7 @@ SELECT * FROM przeglad WHERE przeglad.id_pracownika = p_id_pracownika;
 END //
 
 
--- [87] Usuñ przegl¹d
+-- [87] UsuÅ„ przeglÅ¡d
 
 DELIMITER //
 CREATE PROCEDURE usun_przeglad(
@@ -1231,7 +1231,7 @@ BEGIN
     DELETE FROM przeglad WHERE przeglad.id_przegladu = p_id;
 END //
 
--- [88] Usuñ raport odpadów
+-- [88] UsuÅ„ raport odpadÃ³w
 
 DELIMITER //
 CREATE PROCEDURE usun_odpady(
@@ -1253,7 +1253,7 @@ MONTH(w.data) = MONTH(CURRENT_DATE()) AND YEAR(w.data)= YEAR(CURRENT_DATE()) AND
 AND w.status = 'OPLACONE';
 END //
 
--- [90] Wypisz nazwiska pracowników bior¹cych udzia³ w wydarzeniu
+-- [90] Wypisz nazwiska pracownikÃ³w biorÅ¡cych udziaÅ‚ w wydarzeniu
 
 DELIMITER //
 CREATE PROCEDURE pracownik_na_wydarzeniu(
@@ -1263,7 +1263,7 @@ BEGIN
 	SELECT pracownik.id_pracownika as id_pracownika, pracownik.imie as imie, pracownik.nazwisko as nazwisko FROM pracownik JOIN wydarzenie_pracownik ON pracownik.id_pracownika = wydarzenie_pracownik.id_pracownika WHERE wydarzenie_pracownik.id_wydarzenia = p_id_wydarzenia;
 END //
 
--- [91] Usuñ szkolenie
+-- [91] UsuÅ„ szkolenie
 
 DELIMITER //
 CREATE PROCEDURE usun_szkolenie(
@@ -1274,7 +1274,7 @@ BEGIN
     DELETE FROM wydarzenie WHERE wydarzenie.id_wydarzenia = p_id;
 END //
 
--- [0] Zainicjuj bazê przyk³adowymi danymi
+-- [0] Zainicjuj bazÄ™ przykÅ‚adowymi danymi
 
 DELIMITER //
 CREATE PROCEDURE przykladowe_dane() 
