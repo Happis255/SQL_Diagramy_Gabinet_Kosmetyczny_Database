@@ -1,0 +1,1312 @@
+-- [1a] Utworz konto dla klienta oraz uzuep³nij jego dane (potrzebne jest jeszcze [1b] i [1c] do pe³nego utworzenia klienta //patrz ni¿ej)
+
+DELIMITER //
+CREATE PROCEDURE utworz_klienta(
+    p_email         CHAR(255), 
+    p_haslo         CHAR(255),
+    p_imie          CHAR(255),
+    p_nazwisko      CHAR(255),
+    p_ulica         CHAR(255),
+    p_kod_pocztowy  CHAR(255),
+    p_miejscowosc  CHAR(255),
+    p_data_urodzenia DATE,
+    p_telefon       INT(8))
+BEGIN
+    IF ((SELECT e_mail FROM klient WHERE e_mail = p_email) IS NULL) THEN
+        INSERT INTO konto(haslo, typ_konta) VALUES (p_haslo, 'KLIENT');
+
+        SET @id_konta := (SELECT MAX(id_konta) FROM konto WHERE haslo = p_haslo);
+        
+        INSERT INTO klient(imie, nazwisko, ulica, kod_pocztowy, miejscowosc, data_urodzenia,telefon, e_mail, ilosc_punktow, id_karty, id_statusu, id_konta) VALUES (p_imie, p_nazwisko, p_ulica, p_kod_pocztowy, p_miejscowosc, p_data_urodzenia, p_telefon, p_email, 0, 1, 1, @id_konta);
+    END IF;
+END //
+
+-- [1b] Tworzenie karty klienta.
+
+DELIMITER //
+CREATE PROCEDURE utworz_karte_klienta(
+    p_p1            BOOLEAN,
+    p_p2            BOOLEAN,
+    p_p3            BOOLEAN,
+    p_p4            BOOLEAN,
+    p_p5            BOOLEAN,
+    p_p6            BOOLEAN,
+    p_p7            BOOLEAN,
+    p_p8            BOOLEAN,
+    p_p9            BOOLEAN,
+    p_ocena_skory   CHAR(255),
+    p_rodzaj_jakosc CHAR(255),
+    p_wrazliwosc    CHAR(255),
+    p_inne_uwagi    VARCHAR(5000))
+BEGIN
+        INSERT INTO karta_klienta(p1,p2,p3,p4,p5,p6,p7,p8,p9,ocena_skory, rodzaj_jakosc, wrazliwosc, inne_uwagi) VALUES (p_p1,p_p2,p_p3,p_p4,p_p5,p_p6,p_p7,p_p8,p_p9,p_ocena_skory, p_rodzaj_jakosc, p_wrazliwosc, p_inne_uwagi);
+END //
+
+-- [1c] Przypisywanie ostatnio utworzonej karty klienta do konta danego klienta.
+
+DELIMITER //
+CREATE PROCEDURE przypisz_karte_klienta(
+    p_email         CHAR(255))
+BEGIN
+     SET @id_karty := (SELECT MAX(id_karty) FROM karta_klienta);
+         UPDATE klient SET id_karty = @id_karty WHERE klient.e_mail = p_email;
+END //
+
+-- [2] Utwórz nowy status klienta
+
+DELIMITER //
+CREATE PROCEDURE utworz_status_klienta(
+    p_punkty_od INT(8), 
+    p_punkty_do INT(8),
+    p_znizka_proc INT(8),
+    p_znizka_kwot INT(8),
+    p_nazwa CHAR(255)) 
+BEGIN
+    INSERT INTO status_klienta(punkty_od, punkty_do, znizka_proc, znizka_kwot, nazwa) VALUES (p_punkty_od, p_punkty_do, p_znizka_proc, p_znizka_kwot, p_nazwa);
+END //
+
+-- [3] Zaktualizuj klientowi jego ilosc punktow (i ustaw odpowiednie ID statusu)
+
+DELIMITER //
+CREATE PROCEDURE zaktualizuj_punkty(
+    p_punkty INT(8), 
+    p_email CHAR(255))
+BEGIN
+    SET @old_punkty := (SELECT ilosc_punktow FROM klient WHERE p_email = e_mail);
+    SET @new_punkty := (SELECT @old_punkty + p_punkty);
+    SET @new_id_statusu := (SELECT c.id_statusu FROM status_klienta c WHERE @new_punkty <= c.punkty_do AND @new_punkty >= c.punkty_od);
+    UPDATE klient SET ilosc_punktow = @new_punkty, id_statusu = @new_id_statusu WHERE klient.e_mail = p_email;
+END //
+
+-- [4] Utwórz pracownika, przypisz mu ksi¹¿eczkê zdrowia i konto|
+
+DELIMITER //
+CREATE PROCEDURE utworz_pracownika(
+     p_haslo             CHAR(255),
+     p_imie              CHAR(255), 
+     p_nazwisko          CHAR(255), 
+     p_ulica             CHAR(255), 
+     p_kod_pocztowy      CHAR(255), 
+     p_miejscowowsc      CHAR(255), 
+     p_data_urodzenia    DATE, 
+     p_telefon           INT(8), 
+     p_e_mail            CHAR(255), 
+     p_pesel             BIGINT(21), 
+     p_data_zatrudnienia DATE, 
+     p_certyfikaty       VARCHAR(5000), 
+     p_rozrusznik_serca     BOOLEAN, 
+     p_hermofilia           BOOLEAN, 
+     p_luszczyca            BOOLEAN, 
+     p_alergia              CHAR(255), 
+     p_przebarwienie        CHAR(255), 
+     p_choroba_zakazna      CHAR(255), 
+     p_zaburzenia_ukrwienia CHAR(255), 
+     p_opryszczka           CHAR(255), 
+     p_goraczka             CHAR(255), 
+     p_oslabienie           CHAR(255), 
+     p_ciaza                BOOLEAN
+)
+BEGIN
+    IF ((SELECT e_mail FROM pracownik WHERE e_mail = p_e_mail) IS NULL) THEN
+        INSERT INTO konto(haslo, typ_konta) VALUES (p_haslo, 'PRACOWNIK');
+        INSERT INTO ksiazeczka_zdrowia(rozrusznik_serca, hermofilia, luszczyca, alergia, przebarwienie, choroba_zakazna, zaburzenia_ukrwienia, opryszczka, goraczka, oslabienie, ciaza) 
+        VALUES ( p_rozrusznik_serca, p_hermofilia, p_luszczyca, p_alergia, p_przebarwienie, p_choroba_zakazna, p_zaburzenia_ukrwienia, p_opryszczka, p_goraczka, p_oslabienie, p_ciaza);
+        
+        SET @id_konta := (SELECT MAX(id_konta) FROM konto WHERE haslo = p_haslo);
+        SET @id_ksiazeczki := (SELECT MAX(id_ksiazeczki) FROM ksiazeczka_zdrowia);
+        INSERT INTO pracownik(imie, nazwisko, ulica, kod_pocztowy, miejscowosc, data_urodzenia, e_mail, pesel, data_zatrudnienia ,certyfikaty, id_konta,id_ksiazeczki)
+        VALUES (p_imie, p_nazwisko, p_ulica, p_kod_pocztowy, p_miejscowowsc,  p_data_urodzenia, p_e_mail, p_pesel, p_data_zatrudnienia , p_certyfikaty, @id_konta, @id_ksiazeczki);
+    END IF;
+END //
+
+-- [5.] Dodaj uprawnienia systemowe
+
+DELIMITER //
+CREATE PROCEDURE dodaj_uprawnienie( 
+	P_NAZWA CHAR(255), 
+	P_OPIS CHAR(255) ) 
+BEGIN 
+	INSERT INTO uprawnienie_system(ID_UPRAWNIENIA_SYS, NAZWA, OPIS) VALUES (@ID_UPRAWNIENIA_SYS, P_NAZWA, P_OPIS); 
+END //
+
+-- [8.] Nadaj uprawnienia administracyjne pracownikowi
+
+DELIMITER //
+CREATE PROCEDURE nadaj_uprawnienia_sys(
+    p_id_pracownika INT(8), 
+    p_nazwa CHAR(255))
+BEGIN
+
+	IF ((SELECT NAZWA FROM uprawnienie_system WHERE NAZWA LIKE p_nazwa) IS NOT NULL) THEN 
+    		SET @ID_UPRAWNIENIA_SYS := (SELECT ID_UPRAWNIENIA_SYS FROM uprawnienie_system WHERE NAZWA LIKE p_nazwa);
+        	IF ((SELECT ID_UPRAWNIENIA_SYS FROM pracownik_upr_admin WHERE pracownik_upr_admin.id_pracownika = p_id_pracownika) IS NULL) THEN
+        		INSERT INTO pracownik_upr_admin(ID_PRACOWNIKA, ID_UPRAWNIENIA_SYS) VALUES (p_id_pracownika, @ID_UPRAWNIENIA_SYS); 
+        	ELSE
+        		UPDATE pracownik_upr_admin SET ID_UPRAWNIENIA_SYS = @ID_UPRAWNIENIA_SYS WHERE pracownik_upr_admin.ID_PRACOWNIKA = p_id_pracownika;
+        	END IF;
+    	END IF;
+END //
+
+
+-- [9.] Dodaj promocje
+
+DELIMITER //
+CREATE PROCEDURE dodaj_promocje( 
+	P_NAZWA CHAR(255), 
+	P_OPIS VARCHAR(5000),
+	P_ZNIZKA_PROC INT(8),
+	P_ZNIZKA_KWOT INT(8),
+    P_DATA_OD DATE,
+    P_DATA_DO DATE,
+    P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO promocja(ID_PROMOCJI, NAZWA, OPIS, ZNIZKA_PROC, ZNIZKA_KWOT, DATA_OD, DATA_DO, ID_PRACOWNIKA) VALUES (@ID_PROMOCJI, P_NAZWA, P_OPIS, P_ZNIZKA_PROC, P_ZNIZKA_KWOT, P_DATA_OD, P_DATA_DO, P_ID_PRACOWNIKA); 
+END //
+
+-- [10.] Dodaj produkty na sprzeda¿ 
+
+DELIMITER //
+CREATE PROCEDURE dodaj_produkt_sprzedaz( 
+	P_NAZWA CHAR(255), 
+	P_OPIS VARCHAR(5000),
+	P_CENA INT(8),
+	P_ILOSC INT(8)
+) 
+BEGIN 
+	INSERT INTO produkt_sprzedaz(ID_PRODUKTU_S, NAZWA, OPIS, CENA, ILOSC) VALUES (@ID_PRODUKTU_S, P_NAZWA, P_OPIS, P_CENA, P_ILOSC); 
+END //
+
+-- [11.] Dodaj produkty do u¿ytku w gabinecie
+
+DELIMITER //
+CREATE PROCEDURE dodaj_produkt_uzytkowy( 
+	P_NAZWA CHAR(255), 
+	P_OPIS VARCHAR(5000),
+	P_CENA INT(8),
+	P_ILOSC INT(8),
+    P_KOLOR CHAR(255)
+) 
+BEGIN 
+	INSERT INTO produkt_uzytkowy(ID_PRODUKTU, NAZWA, OPIS, CENA, ILOSC, KOLOR) VALUES (@ID_PRODUKTU, P_NAZWA, P_OPIS, P_CENA, P_ILOSC, P_KOLOR); 
+END //
+
+
+-- [12.] Dodaj style
+
+DELIMITER //
+CREATE PROCEDURE dodaj_styl( 
+	P_NAZWA CHAR(255), 
+	P_OPIS VARCHAR(5000) 
+) 
+BEGIN 
+	INSERT INTO styl(ID_STYLU, NAZWA, OPIS) VALUES (@ID_PRODUKTU, P_NAZWA, P_OPIS); 
+END //
+
+-- [13.] Dodaj uslugi
+
+DELIMITER //
+CREATE PROCEDURE dodaj_usluge( 
+    P_TYP_USLUGI CHAR(255),
+    P_NAZWA CHAR(255),
+    P_OPIS VARCHAR(5000),
+    P_CZY_KARTA BOOLEAN,
+    P_CENA INT(8),
+    P_CZAS_TRWANIA INT(8),
+    P_WSKAZOWKI VARCHAR(5000)
+) 
+BEGIN 
+	INSERT INTO usluga(ID_USLUGI, TYP_USLUGI, NAZWA, OPIS, CZY_KARTA, CENA, CZAS_TRWANIA, WSKAZOWKI) VALUES (@ID_USLUGI, P_TYP_USLUGI, P_NAZWA, P_OPIS, P_CZY_KARTA, P_CENA, P_CZAS_TRWANIA, P_WSKAZOWKI); 
+END //
+
+
+-- [14.] Dodaj us³ugom style
+
+DELIMITER //
+CREATE PROCEDURE dodaj_styl_usl(  
+	P_ID_USLUGI INT(8),
+    P_ID_STYLU INT(8)
+) 
+BEGIN 
+	INSERT INTO styl_usluga(ID_USLUGI, ID_STYLU) VALUES (P_ID_USLUGI, P_ID_STYLU); 
+END //
+
+
+-- [15.a] Utworz klientowi koszyk
+
+
+DELIMITER //
+CREATE PROCEDURE koszyk(  
+	P_DATA_UTWORZENIA DATE,
+    P_STATUS_KOSZYKA ENUM('NIEPOTWIERDZONE', 'W REALIZACJI', 'WYSLANE'),
+	P_ID_KLIENTA INT(8)
+) 
+BEGIN 
+
+	INSERT INTO koszyk(DATA_UTWORZENIA, KOSZT_CALKOWITY, STATUS_KOSZYKA, ID_KLIENTA) VALUES (P_DATA_UTWORZENIA, 0, P_STATUS_KOSZYKA, P_ID_KLIENTA); 
+END //
+
+
+-- [15.b] P³atnoœæ do koszyka
+
+DELIMITER //
+CREATE PROCEDURE koszyk_platnosc(  
+	P_TYP_PLATNOSCI ENUM('PLATNOSC_PRZY_ODBIORZE', 'PRZELEW'),
+	P_TYTUL CHAR(255),
+	P_STATUS_PLATNOSCI ENUM('OPLACONE', 'NIEOPLACONE'),
+    P_ID_KOSZYKA INT(8)
+) 
+BEGIN 
+
+	INSERT INTO platnosc(TYP_PLATNOSCI, TYTUL, STATUS_PLATNOSCI, ID_KOSZYKA) VALUES (P_TYP_PLATNOSCI, P_TYTUL, P_STATUS_PLATNOSCI, P_ID_KOSZYKA);
+END //
+
+
+-- [16.] Dodaj produkty do koszyka
+
+
+DELIMITER //
+CREATE PROCEDURE produkt_do_koszyka(  
+	P_ID_PRODUKTU INT(8),
+    P_ID_KOSZYKA INT(8),
+	P_ILOSC INT(8)
+) 
+BEGIN 
+	IF ((SELECT ILOSC FROM PRODUKT_SPRZEDAZ WHERE ID_PRODUKTU_S = P_ID_PRODUKTU) >= P_ILOSC) THEN
+
+		INSERT INTO koszyk_produkt(ID_KOSZYKA, ID_PRODUKTU_S, ILOSC) VALUES (P_ID_KOSZYKA, P_ID_PRODUKTU, P_ILOSC);
+
+		SET @KOSZT_CALKOWITY := (P_ILOSC * (SELECT CENA FROM produkt_sprzedaz WHERE ID_PRODUKTU_S = P_ID_PRODUKTU));
+        
+        SET @ROZNICA := ((SELECT ILOSC FROM produkt_sprzedaz WHERE ID_PRODUKTU_S = P_ID_PRODUKTU) - P_ILOSC);
+
+		UPDATE koszyk SET KOSZT_CALKOWITY = @KOSZT_CALKOWITY WHERE ID_KOSZYKA = P_ID_KOSZYKA; 
+        UPDATE produkt_sprzedaz SET ILOSC = @ROZNICA WHERE ID_PRODUKTU_S = P_ID_PRODUKTU;
+
+	END IF;
+END //
+
+
+-- [17.] Utworz wizyte dla klienta
+
+
+DELIMITER //
+CREATE PROCEDURE wizyta(  
+	P_DATA DATE,
+    P_GODZINA TIME,
+	P_STATUS ENUM('DO_ZATWIERDZENIA', 'ZATWIERDZONE', 'ODRZUCONE', 'OPLACONE'),
+	P_ID_PRACOWNIKA INT(8),
+	P_ID_KLIENTA INT(8),
+	P_ID_USLUGI INT(8)
+) 
+BEGIN 
+	INSERT INTO wizyta(DATA, GODZINA, STATUS, ID_PRACOWNIKA, ID_KLIENTA, ID_USLUGI) VALUES (P_DATA, P_GODZINA, P_STATUS, P_ID_PRACOWNIKA, P_ID_KLIENTA, P_ID_USLUGI);
+END //
+
+
+-- [18.] Sprawozdanie
+
+DELIMITER //
+CREATE PROCEDURE sprawozdanie(  
+	P_TYP ENUM('SPORALA', 'KONTROLA STACJI SANITARNO EPIDEMIOLOGICZNEJ'),
+    P_TYTUL_SPRAW CHAR(255),
+	P_OPIS_SPRAW VARCHAR(5000),
+	P_DATA DATE,
+	P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO sprawozdanie(TYP, TYTUL, TRESC, DATA, ID_PRACOWNIKA) VALUES (P_TYP, P_TYTUL_SPRAW, P_OPIS_SPRAW, P_DATA, P_ID_PRACOWNIKA);
+END //
+
+
+-- [19.] Dodaj sprzet do gabinetu
+
+DELIMITER //
+CREATE PROCEDURE dodaj_sprzet(  
+	P_NAZWA_SPRZETU CHAR(255),
+    P_OPIS_SPRZETU VARCHAR(5000),
+    P_DATA_ZAKUPU DATE,
+    P_DATA_GWARANCJI DATE,
+    P_UWAGI VARCHAR(5000)
+) 
+BEGIN 
+	INSERT INTO sprzet(NAZWA_SPRZETU, OPIS_SPRZETU, DATA_ZAKUPU, DATA_GWARANCJI, UWAGI) VALUES (P_NAZWA_SPRZETU, P_OPIS_SPRZETU, P_DATA_ZAKUPU, P_DATA_GWARANCJI, P_UWAGI); 
+END //
+
+
+-- [20.] Zadanie gospodarcze
+
+
+DELIMITER //
+CREATE PROCEDURE zadanie_gosp(
+    P_TYTUL_ZADANIA CHAR(255),
+	P_OPIS_ZADANIA VARCHAR(5000),
+	P_DATA_OD DATE,
+	P_DATA_DO DATE,
+	P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO zadanie_gospodarcze(TYTUL_ZADANIA, OPIS_ZADANIA, DATA_OD, DATA_DO, ID_PRACOWNIKA) VALUES (P_TYTUL_ZADANIA, P_OPIS_ZADANIA, P_DATA_OD, P_DATA_DO, P_ID_PRACOWNIKA);
+END //
+
+
+-- [21.] Raport odpadów
+
+
+DELIMITER //
+CREATE PROCEDURE odpady(
+    P_TYTUL_RAPORTU CHAR(255),
+	P_TYP_ODPADOW ENUM('150110', '150107', '150102', '160214', '180103'),
+	P_DATA DATE,
+	P_ILOSC INT(8),
+	P_KOSZT INT(8),
+	P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO raport_odpadow(TYTUL_RAPORTU, TYP_ODPADOW, DATA, ILOS, KOSZT, ID_PRACOWNIKA) VALUES (P_TYTUL_RAPORTU, P_TYP_ODPADOW, P_DATA, P_ILOSC, P_KOSZT, P_ID_PRACOWNIKA);
+END //
+
+
+
+-- [22.] Utworz przeglad i dodaj sprzet do tego przegladu
+
+
+DELIMITER //
+CREATE PROCEDURE przeglad(
+	P_TYTUL_PRZEGLADU CHAR(255),
+	P_OPIS_PRZEGLADU VARCHAR(5000),
+	P_DATA DATE,
+	P_ID_PRACOWNIKA INT(8),
+	P_ID_SPRZETU INT(8)
+) 
+BEGIN 
+	INSERT INTO przeglad(TYTUL_PRZEGLADU, OPIS_PRZEGLADU, DATA, ID_PRACOWNIKA) VALUES (P_TYTUL_PRZEGLADU, P_OPIS_PRZEGLADU, P_DATA, P_ID_PRACOWNIKA);
+
+	SET @ID_PRZEGLADU := (SELECT ID_PRZEGLADU FROM przeglad WHERE ID_PRZEGLADU NOT IN(SELECT ID_PRZEGLADU FROM PRZEGLAD_SPRZET));
+
+	INSERT INTO przeglad_sprzet(ID_PRZEGLADU, ID_SPRZETU) VALUES (@ID_PRZEGLADU, P_ID_SPRZETU);
+END //
+
+
+-- [23.] Dodaj aktualnosc
+
+DELIMITER //
+CREATE PROCEDURE dodaj_aktualnosc(  
+	P_TYTUL CHAR(255),
+    P_TRESC VARCHAR(5000),
+    P_DATA_OD DATE,
+    P_DATA_DO DATE,
+    P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO aktualnosc(TYTUL, TRESC, DATA_OD, DATA_DO, ID_PRACOWNIKA) VALUES (P_TYTUL, P_TRESC, P_DATA_OD, P_DATA_DO, P_ID_PRACOWNIKA); 
+END //
+
+
+-- [24.] Utworz wydarzenie
+
+DELIMITER //
+CREATE PROCEDURE dodaj_wydarzenie(  
+	P_TYP ENUM('KONGRES', 'SZKOLENIE', 'TARGI_KOSMETYCZNE'),
+    P_NAZWA CHAR(255),
+    P_OPIS CHAR(255),
+    P_MIEJSCOWOSC CHAR(255),
+    P_KOD_POCZTOWY CHAR(255),
+    P_ULICA CHAR(255),
+    P_DATA_OD DATE,
+    P_DATA_DO DATE,
+    P_KOSZ INT(8),
+    P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO wydarzenie(TYP, NAZWA, OPIS, miejscowosc, KOD_POCZTOWY, ULICA, DATA_OD, DATA_DO, KOSZ) VALUES (P_TYP, P_NAZWA, P_OPIS, P_MIEJSCOWOSC, P_KOD_POCZTOWY, P_ULICA, P_DATA_OD, P_DATA_DO, P_KOSZ); 
+    SET @ID_WYDARZENIA := (SELECT ID_WYDARZENIA FROM wydarzenie WHERE NAZWA = P_NAZWA);
+    INSERT INTO wydarzenie_pracownik(ID_WYDARZENIA, ID_PRACOWNIKA) VALUES (@ID_WYDARZENIA, P_ID_PRACOWNIKA);
+END //
+
+
+-- [25.] Utworz liste zakupow
+
+DELIMITER //
+CREATE PROCEDURE lista_zakupow(
+	P_DATA DATE,
+	P_OPIS CHAR(255),
+	P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO lista_zakupow(DATA_UTWORZENIA, OPIS, ID_PRACOWNIKA) VALUES (P_DATA, P_OPIS, P_ID_PRACOWNIKA);
+END //
+
+
+-- [26.] Dodaj zakupy do listy zakupowej
+
+DELIMITER //
+CREATE PROCEDURE dodaj_do_listy(
+	P_ID_LISTY INT(8),
+	P_ID_PRODUKTU INT(8),
+	P_ILOSC INT(8)
+) 
+BEGIN 
+	INSERT INTO lista_przedmiot(ID_LISTY, ID_PRODUKTU, ILOSC) VALUES (P_ID_LISTY, P_ID_PRODUKTU, P_ILOSC);
+END //
+
+
+-- [27.] Wpisz ludzi na wydarzenie
+
+DELIMITER //
+CREATE PROCEDURE dodaj_na_wydarzenie(
+	P_ID_WYDARZENIA INT(8),
+	P_ID_PRACOWNIKA INT(8)
+) 
+BEGIN 
+	INSERT INTO wydarzenie_pracownik(ID_WYDARZENIA, ID_PRACOWNIKA) VALUES (P_ID_WYDARZENIA, P_ID_PRACOWNIKA);
+END //
+
+
+
+-- [28.] Zglos nieobecnosc
+
+DELIMITER //
+CREATE PROCEDURE zglos_nieobecnosc(
+	P_DATA_OD DATE,
+	P_DATA_DO DATE,
+	P_POWOD CHAR(255),
+	P_ID_PRACOWNIKA INT(8),
+	P_STATUS ENUM('NIEPOTWIERDZONE', 'POTWIERDZONE')
+) 
+BEGIN 
+	INSERT INTO nieobecnosc(DATA_OD, DATA_DO, POWOD, ID_PRACOWNIKA, STATUS) VALUES (P_DATA_OD, P_DATA_DO, P_POWOD, P_ID_PRACOWNIKA, P_STATUS);
+END //
+
+
+-- [29.] Utworz wiadomosc 
+
+
+DELIMITER //
+CREATE PROCEDURE wiadomosc(
+	P_DATA DATE,
+	P_GODZINA TIME,
+	P_TYTUL CHAR(255),
+	P_TRESC CHAR(255),
+	P_STATUS ENUM('WYSLANA', 'ODCZYTANA'),
+	P_ID_KONTA_OD INT(8),
+	P_ID_KONTA_DO INT(8)
+) 
+BEGIN 
+	INSERT INTO wiadomosc(DATA, GODZINA, TYTUL, TRESC, STATUS_WIADOMOSCI, ID_KONTA_OD, ID_KONTA_DO) VALUES (P_DATA, P_GODZINA, P_TYTUL, P_TRESC, P_STATUS, P_ID_KONTA_OD, P_ID_KONTA_DO);
+END //
+
+
+-- [30.] Utworz przypomnienie
+
+DELIMITER //
+CREATE PROCEDURE przypomnienie(
+	P_DATA DATE,
+	P_GODZINA TIME,
+	P_TYTUL CHAR(255),
+	P_TRESC CHAR(255),
+	P_STATUS ENUM('WYSLANA', 'ODCZYTANA'),
+	P_ID_KONTA INT(8)
+) 
+BEGIN 
+	INSERT INTO przypomnienie(DATA, GODZINA, TYTUL, TRESC, STATUS_PRZYPOMNIENIA, ID_KONTA_DO) VALUES (P_DATA, P_GODZINA, P_TYTUL, P_TRESC, P_STATUS, P_ID_KONTA);
+END //
+
+-- [31.] Dodaj produkt do promocji
+
+DELIMITER //
+CREATE PROCEDURE promocja_produkt(
+	P_ID_PROMOCJI INT(8),
+	P_ID_PRODUKTU_S INT(8)
+) 
+BEGIN 
+	UPDATE produkt_sprzedaz SET ID_PROMOCJI = P_ID_PROMOCJI WHERE ID_PRODUKTU_S = P_ID_PRODUKTU_S;
+END //
+
+-- [32.] Dodaj us³ugê do promocji
+
+DELIMITER //
+CREATE PROCEDURE promocja_usluga(
+	P_ID_PROMOCJI INT(8),
+	P_ID_USLUGI INT(8)
+) 
+BEGIN 
+	UPDATE usluga SET ID_PROMOCJI = P_ID_PROMOCJI WHERE ID_USLUGI = P_ID_USLUGI;
+END //
+
+
+-- [33] Wyswietl aktualnosci na dzisiaj
+
+DELIMITER //
+CREATE PROCEDURE pobierz_dzisiaj_aktualnosci(
+) 
+BEGIN 
+SELECT * FROM aktualnosc WHERE CURRENT_DATE > aktualnosc.data_od AND CURRENT_DATE < aktualnosc.data_do;
+END //
+
+-- [34] Pobierz dane o koncie w zale¿noœci od typu konta
+
+DELIMITER //
+CREATE PROCEDURE pobierz_dane(
+    p_id_konta int(8)
+) 
+BEGIN 
+
+if(( SELECT typ_konta FROM konto WHERE id_konta = p_id_konta) like 'PRACOWNIK' OR 'ADMINISTRATOR') THEN
+	SELECT * FROM pracownik JOIN konto ON pracownik.id_konta = konto.id_konta where pracownik.id_konta = p_id_konta;
+ELSE
+		SELECT * FROM klient JOIN konto ON klient.id_konta = konto.id_konta where klient.id_konta = p_id_konta;
+    
+end if;
+
+END //
+
+-- [35] Usuñ klienta
+
+DELIMITER //
+CREATE PROCEDURE usun_klient(
+    p_id_klienta int(8)
+) 
+BEGIN 
+
+SET @id_kart := (SELECT klient.id_karty FROM klient WHERE klient.id_klienta = p_id_klienta);
+
+SET @id_konta := (SELECT klient.id_konta FROM klient WHERE klient.id_klienta = p_id_klienta);
+
+UPDATE klient SET ulica = "-", kod_pocztowy = "-", miejscowosc = "-", data_urodzenia = "-", telefon = 0, e_mail = "-", ilosc_punktow = 0 WHERE id_klienta = p_id_klienta;
+
+CALL usun_karta_klienta(@id_kart);
+CALL usun_konto(@id_konta);
+
+END //
+
+-- [36] Usuñ pracownika
+
+DELIMITER //
+CREATE PROCEDURE usun_pracownik(
+    p_id_pracownika int(8)
+) 
+BEGIN 
+
+UPDATE pracownik SET ulica = "-", kod_pocztowy = "-", miejscowosc = "-", data_urodzenia = "-", telefon = 0, e_mail = "-", pesel = 0 WHERE id_pracownika = p_id_pracownika;
+
+END //
+
+-- [37] Zmieñ has³o konta
+
+DELIMITER //
+CREATE PROCEDURE zmien_haslo(
+    p_id_konta int(8),
+    p_haslo char(255)
+) 
+BEGIN 
+
+UPDATE konto SET haslo = p_haslo WHERE id_konta = p_id_konta;
+
+END //
+
+-- [38] Usuñ konto
+
+DELIMITER //
+CREATE PROCEDURE usun_konto(
+    p_id_konta int(8)
+) 
+BEGIN 
+
+UPDATE konto SET haslo = "-" WHERE id_konta = p_id_konta;
+
+END //
+
+-- [39] Usuñ ksi¹¿eczkê zdrowia
+
+
+DELIMITER //
+CREATE PROCEDURE usun_ksiazeczka_zdrowia(
+    p_id_ksiazeczki int(8)
+) 
+BEGIN 
+
+UPDATE ksiazeczka_zdrowia SET ksiazeczka_zdrowia.rozrusznik_serca = 0, ksiazeczka_zdrowia.hermofilia = 0, ksiazeczka_zdrowia.luszczyca = "-", ksiazeczka_zdrowia.alergia = "-", ksiazeczka_zdrowia.przebarwienie = "-", ksiazeczka_zdrowia.choroba_zakazna = "-", ksiazeczka_zdrowia.zaburzenia_ukrwienia = "-", ksiazeczka_zdrowia.opryszczka = "-", ksiazeczka_zdrowia.goraczka = "-",
+ksiazeczka_zdrowia.oslabienie = "-", ksiazeczka_zdrowia.ciaza = 0 WHERE id_ksiazeczki = p_id_ksiazeczki;
+
+END //
+
+-- [40] Usuñ kartê klienta
+
+DELIMITER //
+CREATE PROCEDURE usun_karta_klienta(
+    p_id_karty int(8)
+) 
+BEGIN 
+
+UPDATE karta_klienta SET p1 = 0, p2 = 0, p3 = 0, p4 =0, p5 = 0, p6 = 0, p7 = 0, p8 = 0, p9 = 0, ocena_skory = "-", rodzaj_jakosc = "-", wrazliwosc = "-", inne_uwagi = "-"  WHERE id_karty = p_id_karty;
+
+END //
+
+
+-- [41] Pobierz dane u¿ytkownika wed³ug typu konta
+
+DELIMITER //
+CREATE PROCEDURE pobierz_dane_uzytkownikow_typu(
+    p_typ_konta enum('PRACOWNIK', 'ADMINISTRATOR', 'KLIENT')
+) 
+BEGIN 
+
+if(p_typ_konta = 'KLIENT') THEN
+    SELECT kl.e_mail, kl.imie, kl.nazwisko, kt.typ_konta FROM klient kl JOIN konto kt ON kl.id_konta = kt.id_konta where kt.typ_konta = p_typ_konta;
+ELSE
+    SELECT pr.e_mail, pr.imie, pr.nazwisko, kt.typ_konta FROM pracownik pr JOIN konto kt ON pr.id_konta = kt.id_konta where kt.typ_konta = p_typ_konta;
+
+
+end if;
+
+END //
+
+-- [42] Edytuj dane o sprzêcie
+
+DELIMITER //
+CREATE PROCEDURE edytuj_sprzet(
+    P_ID_SPRZETU INT(8),
+	P_NAZWA_SPRZETU CHAR(255),
+    P_OPIS_SPRZETU VARCHAR(5000),
+    P_DATA_ZAKUPU DATE,
+    P_DATA_GWARANCJI DATE,
+    P_UWAGI VARCHAR(5000)
+) 
+BEGIN 
+	UPDATE sprzet SET NAZWA_SPRZETU = P_NAZWA_SPRZETU, OPIS_SPRZETU = P_OPIS_SPRZETU, DATA_ZAKUPU = P_DATA_ZAKUPU, DATA_GWARANCJI = P_DATA_GWARANCJI, UWAGI = P_UWAGI WHERE ID_SPRZETU = P_ID_SPRZETU; 
+END //
+
+-- [43] Pobierz dane o sprzêcie
+
+DELIMITER //
+CREATE PROCEDURE dane_sprzet(
+    P_ID_SPRZETU INT(8)
+) 
+BEGIN 
+	SELECT * FROM sprzet WHERE ID_SPRZETU = P_ID_SPRZETU; 
+END //
+
+
+-- [44] PotwierdŸ nieobecnoœæ
+
+DELIMITER //
+CREATE PROCEDURE potwr_nieob(
+    P_ID_NIEOBECNOSCI INT(8)
+) 
+BEGIN 
+	UPDATE nieobecnosc SET STATUS = 'POTWIERDZONE' WHERE id_nieobecnosci = P_ID_NIEOBECNOSCI;
+END //
+
+
+-- [45] Usuñ sprzêt
+
+
+DELIMITER //
+CREATE PROCEDURE usun_sprzet(
+    P_ID_SPRZETU INT(8)
+) 
+BEGIN 
+	UPDATE sprzet SET UWAGI = "Sprzêt nie jest ju¿ w u¿ytku" WHERE ID_SPRZETU = P_ID_SPRZETU; 
+END //
+
+
+-- [46] Wypisz us³ugi w przedziale czasowym
+
+DELIMITER //
+CREATE PROCEDURE uslugi_w_dniach(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN 
+	SELECT * FROM wizyta w JOIN usluga u ON w.id_uslugi = u.id_uslugi WHERE data >= date(p_data_od) AND data <= date(p_data_do) ;
+END //
+
+
+-- [47] Wypisz us³ugi wed³ug ID klienta
+
+DELIMITER //
+CREATE PROCEDURE uslugi_dla_klienta(
+    p_id_klienta INT(8)
+) 
+BEGIN 
+	SELECT * FROM wizyta w JOIN usluga u ON w.id_uslugi = u.id_uslugi WHERE id_klienta = p_id_klienta;
+END //
+
+-- [48] Wypisz us³ugi wed³ug ID pracownika
+
+
+DELIMITER //
+CREATE PROCEDURE uslugi_wykonane_przez(
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+	SELECT * FROM wizyta w JOIN usluga u ON w.id_uslugi = u.id_uslugi WHERE id_pracownika = p_id_pracownika;
+END //
+
+-- [49] Pobierz wskazówki przygotowania do zabiegu
+
+DELIMITER //
+CREATE PROCEDURE wskazowki_do_zabiegu(
+    p_id_uslugi INT(8)
+) 
+BEGIN 
+	SELECT wskazowki FROM usluga WHERE id_uslugi = p_id_uslugi;
+END //
+
+-- [50] Wypisz nieobecnoœci w przedziale czasowym
+
+DELIMITER //
+CREATE PROCEDURE nieob_w_dniach(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN 
+	SELECT * FROM nieobecnosc WHERE data_od >= date(p_data_od) AND data_do <= date(p_data_do) ;
+END //
+
+-- [51] Wypisz nieobecnoœci pracownika
+
+DELIMITER //
+CREATE PROCEDURE nieob_pracownika(
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+	SELECT nieobecnosc.*, pracownik.imie, pracownik.nazwisko FROM nieobecnosc JOIN pracownik ON nieobecnosc.id_pracownika = pracownik.id_pracownika WHERE nieobecnosc.id_pracownika = p_id_pracownika;
+END //
+
+-- [52] Wypisz zadania gospodarcze przypisane do danego pracownika
+
+DELIMITER //
+CREATE PROCEDURE zad_gosp_pracownika(
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+	SELECT * FROM zadanie_gospodarcze WHERE id_pracownika = p_id_pracownika;
+END //
+
+-- [53] Przypisz zadanie gospodarcze do innego pracownika
+
+DELIMITER //
+CREATE PROCEDURE zmien_pracownik_zad(
+    p_id_zadania INT(8),
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+	UPDATE zadanie_gospodarcze SET id_pracownika = p_id_pracownika WHERE id_zadania = p_id_zadania;
+END //
+
+-- [54] Pobierz dane us³ugi i stylu, jeœli jest
+
+DELIMITER //
+CREATE PROCEDURE info_usluga(
+    p_id_uslugi INT(8)
+) 
+BEGIN 
+	IF((SELECT id_stylu FROM styl_usluga WHERE id_uslugi = p_id_uslugi) IS NOT NULL) THEN
+        SELECT u.*, s.* FROM usluga u JOIN styl_usluga su ON u.id_uslugi = su.id_uslugi JOIN styl s ON su.id_stylu = s.id_stylu WHERE su.id_uslugi = p_id_uslugi;
+    ELSE
+    	SELECT * FROM usluga WHERE id_uslugi = p_id_uslugi;
+    END IF;
+END //
+
+-- [55] Wypisz nieobecnoœci i wizyty pracownika
+
+DELIMITER //
+CREATE PROCEDURE wizyty_nieob_prac(
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+	SELECT * FROM nieobecnosc n JOIN wizyta w ON n.id_pracownika = w.id_pracownika WHERE n.id_pracownika = p_id_pracownika;
+END //
+
+-- [56] Wypisz koszyki i ich zawartoœæ dla danego klienta
+
+DELIMITER //
+CREATE PROCEDURE zakupy_klienta(
+    p_id_klienta INT(8)
+) 
+BEGIN 
+	SELECT k.*, ps.*, kp.ilosc as ilosc_w_koszyku FROM koszyk k JOIN koszyk_produkt kp ON k.id_koszyka = kp.id_koszyka JOIN produkt_sprzedaz ps ON ps.id_produktu_s = kp.id_produktu_s WHERE k.id_klienta = p_id_klienta;
+END //
+
+-- [57] Wypisz dane przelewu za koszyk danego klienta
+
+DELIMITER //
+CREATE PROCEDURE platnosc_klienta(
+    p_id_klienta INT(8)
+) 
+BEGIN 
+	SELECT p.* FROM koszyk k JOIN platnosc p ON k.id_koszyka = p.id_koszyka WHERE k.id_klienta = p_id_klienta;
+END //
+
+-- [58] Wypisz wszystkie dane z tabeli aktualnoœci
+
+DELIMITER //
+CREATE PROCEDURE pokaz_aktualnosci(
+) 
+BEGIN 
+	SELECT * FROM aktualnosc;
+END //
+
+-- [59] Usuñ promocjê
+
+DELIMITER //
+CREATE PROCEDURE usun_promocje(
+	p_id_promocji INT(8)
+) 
+BEGIN 
+	UPDATE promocja SET opis = "promocja nieaktualna" WHERE id_promocji = p_id_promocji;
+    IF ((SELECT id_uslugi FROM usluga WHERE id_promocji = p_id_promocji) IS NOT NULL) THEN
+    	UPDATE usluga SET id_promocji = NULL WHERE id_promocji = p_id_promocji;
+	END IF;
+    
+    IF ((SELECT id_produktu_s FROM produkt_sprzedaz WHERE id_promocji = p_id_promocji) IS NOT NULL) THEN
+    	UPDATE produkt_sprzedaz SET id_promocji = NULL WHERE id_promocji = p_id_promocji;
+	END IF;
+END //
+
+-- [60] Usuñ us³ugê
+
+DELIMITER //
+CREATE PROCEDURE usun_usluge(
+    p_id_uslugi INT(8)
+) 
+BEGIN 
+	UPDATE usluga SET opis = "us³uga nie jest wykonywana" WHERE id_uslugi = p_id_uslugi;
+END //
+
+-- [61] Edytuj dane pracownika
+
+DELIMITER //
+CREATE PROCEDURE edytuj_pracownik(
+	p_id_pracownika INT(8),
+     p_nazwisko          CHAR(255), 
+     p_ulica             CHAR(255), 
+     p_kod_pocztowy      CHAR(255), 
+     p_miejscowowsc      CHAR(255), 
+     p_telefon           INT(8), 
+     p_e_mail            CHAR(255), 
+     p_certyfikaty       VARCHAR(5000),
+     p_haslo              CHAR(255)
+)
+BEGIN
+    UPDATE pracownik SET nazwisko = p_nazwisko, ulica = p_ulica, kod_pocztowy = p_kod_pocztowy, miejscowosc= p_miejscowowsc, telefon = p_telefon, e_mail = p_e_mail, certyfikaty = p_certyfikaty WHERE id_pracownika = p_id_pracownika;
+    SET @id_konta := (SELECT id_konta FROM pracownik WHERE id_pracownika = p_id_pracownika);
+    UPDATE konto SET haslo = p_haslo WHERE id_konta = @id_konta;
+END //
+
+
+-- [62] Edytuj dane klienta
+
+DELIMITER //
+CREATE PROCEDURE edytuj_klienta(
+    p_id_klienta     INT(8),
+    p_e_mail         CHAR(255), 
+    p_nazwisko       CHAR(255),
+    p_ulica          CHAR(255),
+    p_kod_pocztowy   CHAR(255),
+    p_miejscowosc    CHAR(255),
+    p_telefon        INT(8),
+    p_haslo          CHAR(255))
+BEGIN
+    UPDATE klient SET e_mail = p_e_mail, nazwisko = p_nazwisko, ulica = p_ulica, kod_pocztowy = p_kod_pocztowy, miejscowosc = p_miejscowosc, telefon = p_telefon WHERE id_klienta = p_id_klienta;
+    SET @id_konta := (SELECT id_konta FROM klient WHERE klient.id_klienta = p_id_klienta);
+    UPDATE konto SET haslo = p_haslo WHERE id_konta = @id_konta;
+END //
+
+-- [63] Dodaj nowe certyfikaty
+
+DELIMITER //
+CREATE PROCEDURE dodaj_certyfikaty(
+	p_nowy_certyfikat VARCHAR(5000),
+    p_id_pracownika INT(8)
+)
+BEGIN
+	SET @certyfikaty := (SELECT certyfikaty FROM pracownik WHERE id_pracownika = p_id_pracownika);
+    UPDATE pracownik SET certyfikaty = CONCAT(@certyfikaty, p_nowy_certyfikat) WHERE id_pracownika = p_id_pracownika;
+END //
+
+-- [64] Pobierz certyfikaty
+
+DELIMITER //
+CREATE PROCEDURE pobierz_certyfikaty(
+    p_id_pracownika INT(8)
+)
+BEGIN
+	SELECT certyfikaty FROM pracownik WHERE id_pracownika = p_id_pracownika;
+END //
+
+-- [65] Wypisz przypomnienia na bie¿¹cy dzieñ
+
+DELIMITER //
+CREATE PROCEDURE pobierz_przypomnienia_na_dzis(
+) 
+BEGIN 
+SELECT * FROM przypomnienie WHERE CURRENT_DATE = przypomnienie.data;
+END //
+
+-- [66] Wypisz raporty z przedzia³u czasowego
+
+DELIMITER //
+CREATE PROCEDURE raporty_w_dniach(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN 
+	SELECT * FROM raport_odpadow WHERE data >= date(p_data_od) AND data <= date(p_data_do);
+END //
+
+-- [67] Wygeneruj roczny bilans utyliacji
+
+DELIMITER //
+CREATE PROCEDURE bilans_utylizacji(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN  
+	SELECT SUM(koszt*ilos) AS bilnas FROM raport_odpadow WHERE data >= date(p_data_od) AND data <= date(p_data_do);
+END //
+
+-- [68] Edytuj iloœæ produktów u¿ytkowych na stanie
+
+DELIMITER //
+CREATE PROCEDURE ile_produkt_uzytkowy(
+    p_id_produktu INT(8),
+    p_ilosc INT(8)
+) 
+BEGIN 
+	UPDATE produkt_uzytkowy SET ilosc = p_ilosc WHERE id_produktu = p_id_produktu;
+END //
+
+-- [69] Edytuj iloœæ produktów na sprzeda¿ na stanie
+
+DELIMITER //
+CREATE PROCEDURE ile_produkt_sprzedaz(
+    p_id_produktu_s INT(8),
+    p_ilosc INT(8)
+) 
+BEGIN 
+	UPDATE produkt_sprzedaz SET ilosc = p_ilosc WHERE id_produktu_s = p_id_produktu_s;
+END //
+
+-- [70] Pobierz dane dotycz¹ce listy zakupowej
+
+DELIMITER //
+CREATE PROCEDURE info_o_liscie_zakup(
+    p_id_listy INT(8)
+) 
+BEGIN 
+	SELECT lz.*, pu.*, lp.ilosc as ilosc_na_liscie FROM lista_zakupow lz JOIN lista_przedmiot lp ON lz.id_listy = lp.id_listy JOIN produkt_uzytkowy pu ON pu.id_produktu = lp.id_produktu WHERE lz.id_listy = p_id_listy;
+END //
+
+-- [71] Edycja Karty Klienta
+
+DELIMITER //
+CREATE PROCEDURE edytuj_karte_klienta(
+    p_id_klienta INT(8),
+    p_p1            BOOLEAN,
+    p_p2            BOOLEAN,
+    p_p3            BOOLEAN,
+    p_p4            BOOLEAN,
+    p_p5            BOOLEAN,
+    p_p6            BOOLEAN,
+    p_p7            BOOLEAN,
+    p_p8            BOOLEAN,
+    p_p9            BOOLEAN,
+    p_ocena_skory   CHAR(255),
+    p_rodzaj_jakosc CHAR(255),
+    p_wrazliwosc    CHAR(255),
+    p_inne_uwagi    VARCHAR(5000))
+BEGIN
+	SET @id_karty := (SELECT id_karty FROM klient WHERE id_klienta = p_id_klienta);
+	UPDATE karta_klienta SET p1 = p_p1, p2 = p_p2, p3 = p_p3, p4 = p_p4, p5 = p_p5, p6 = p_p6, p7 = p_p7, p8 = p_p8, p9 = p_p9, ocena_skory = p_ocena_skory, rodzaj_jakosc = p_rodzaj_jakosc, wrazliwosc = p_wrazliwosc, inne_uwagi = p_inne_uwagi WHERE id_karty = @id_karty;
+END //
+
+-- [72] Edycja Ksi¹¿eczki Zdrowia
+
+DELIMITER //
+CREATE PROCEDURE edytuj_ksiazeczke(
+     p_id_ksiazeczki INT(8),
+     p_rozrusznik_serca     BOOLEAN, 
+     p_hermofilia           BOOLEAN, 
+     p_luszczyca            BOOLEAN, 
+     p_alergia              CHAR(255), 
+     p_przebarwienie        CHAR(255), 
+     p_choroba_zakazna      CHAR(255), 
+     p_zaburzenia_ukrwienia CHAR(255), 
+     p_opryszczka           CHAR(255), 
+     p_goraczka             CHAR(255), 
+     p_oslabienie           CHAR(255), 
+     p_ciaza                BOOLEAN
+)
+BEGIN
+    UPDATE ksiazeczka_zdrowia SET rozrusznik_serca = p_rozrusznik_serca, hermofilia = p_hermofilia, luszczyca = p_luszczyca, alergia = p_alergia, przebarwienie = p_przebarwienie, choroba_zakazna = p_choroba_zakazna, zaburzenia_ukrwienia = p_zaburzenia_ukrwienia, opryszczka = p_opryszczka, goraczka = p_goraczka, oslabienie = p_oslabienie, ciaza = p_ciaza WHERE id_ksiazeczki = p_id_ksiazeczki;
+END //
+
+-- [73] Pobranie Karty konkretnego klienta
+
+DELIMITER //
+CREATE PROCEDURE pobierz_karte_klienta(
+    p_id_klienta INT(8)
+)
+BEGIN
+	SELECT kk.* FROM karta_klienta kk JOIN klient k ON kk.id_karty = k.id_karty WHERE k.id_klienta = p_id_klienta;
+END //
+
+-- [74] Pobranie Ksi¹¿eczki konkretnego pracownika
+
+DELIMITER //
+CREATE PROCEDURE pobierz_ksiazeczke(
+    p_id_ksiazeczki INT(8)
+)
+BEGIN
+	SELECT * FROM ksiazeczka_zdrowia WHERE ksiazeczka_zdrowia.id_ksiazeczki = p_id_ksiazeczki;
+END //
+
+-- [75] Pobierz aktualnoœci i podaj nazwisko pracownika, który je doda³
+
+DELIMITER //
+CREATE PROCEDURE pokaz_aktualnosci_pracownik(
+) 
+BEGIN 
+    SELECT a.id_aktualnosci, a.tytul, a.tresc, a.data_od, a.data_do, b.nazwisko FROM aktualnosc a JOIN pracownik b ON a.id_pracownika = b.id_pracownika;
+END //
+
+-- [76] Wypisz sprawozdania z przedzia³u czasowego
+
+DELIMITER //
+CREATE PROCEDURE sprawozdania_w_dniach(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN 
+	SELECT * FROM sprawozdanie WHERE data >= date(p_data_od) AND data <= date(p_data_do);
+END //
+
+-- [77] Wypisz przegl¹dy z przedzia³u czasowego
+
+DELIMITER //
+CREATE PROCEDURE przeglady_w_dniach(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN 
+	SELECT * FROM przeglad WHERE data >= date(p_data_od) AND data <= date(p_data_do);
+END //
+
+-- [78] Wypisz zadania gospodarcze z przedzia³u czasowego
+
+DELIMITER //
+CREATE PROCEDURE zadania_w_dniach(
+    p_data_od DATE,
+    p_data_do DATE
+) 
+BEGIN 
+	SELECT * FROM zadanie_gospodarcze WHERE data_od >= date(p_data_od) AND data_do <= date(p_data_do);
+END //
+
+-- [79] Usun news'a
+
+DELIMITER //
+CREATE PROCEDURE usun_aktualnosc(
+	p_id INT
+)
+BEGIN
+	DELETE FROM aktualnosc WHERE aktualnosc.id_aktualnosci = p_id;
+END //
+
+-- [80] Odrzuc nieobecnosc
+
+DELIMITER //
+CREATE PROCEDURE odrzuc_nieob(
+    P_ID_NIEOBECNOSCI INT(8)
+    )
+BEGIN 
+    UPDATE nieobecnosc SET STATUS = 'NIEPOTWIERDZONE' WHERE id_nieobecnosci = P_ID_NIEOBECNOSCI;
+END //
+
+-- [81] - Nowe nadawanie uprawnienia do wykonywania us³ugi
+
+DELIMITER //
+CREATE PROCEDURE nadaj_uprawnienie_uslugowe(
+    P_ID_PRACOWNIKA INT(8),
+    P_ID_USLUGI INT(8)
+    )
+BEGIN 
+    INSERT INTO pracownik_usluga(id_pracownika, id_uslugi) VALUES (P_ID_PRACOWNIKA , P_ID_USLUGI);
+END //
+
+-- [82] Wypisz raporty pracownika
+
+DELIMITER //
+CREATE PROCEDURE pobierz_raporty_pracownika(
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+SELECT * FROM sprawozdanie WHERE sprawozdanie.id_pracownika = p_id_pracownika;
+END //
+
+-- [83] Usuñ raport
+
+DELIMITER //
+CREATE PROCEDURE usun_sprawozdanie(
+	p_id INT(8)
+)
+BEGIN
+	DELETE FROM sprawozdanie WHERE sprawozdanie.id_sprawozdania = p_id;
+END //
+
+-- [84] Edytuj status
+
+DELIMITER //
+CREATE PROCEDURE edytuj_status(
+    p_id INT(8),
+    p_punkty_od INT(8),
+    p_punkty_do INT(8),
+    p_znizka_proc INT(8),
+    p_znizka_kwot INT(8),
+    p_nazwa CHAR(255)
+)
+BEGIN
+    UPDATE
+        status_klienta
+    SET
+        status_klienta.punkty_od = p_punkty_od,
+        status_klienta.punkty_do = p_punkty_do,
+        status_klienta.znizka_proc = p_znizka_proc,
+        status_klienta.znizka_kwot = p_znizka_kwot,
+        status_klienta.nazwa = p_nazwa
+    WHERE
+        status_klienta.id_statusu = p_id;
+END //
+
+-- [85] Edytuj promocje
+
+DELIMITER //
+CREATE PROCEDURE edytuj_promocje(
+    P_NAZWA CHAR(255),
+    P_OPIS VARCHAR(5000),
+    P_ZNIZKA_PROC INT(8),
+    P_ZNIZKA_KWOT INT(8),
+    P_DATA_OD DATE,
+    P_DATA_DO DATE,
+    P_ID_PRACOWNIKA INT(8),
+    P_ID_PROMOCJI INT(8)
+)
+BEGIN
+    UPDATE
+        promocja
+    SET
+        NAZWA = P_NAZWA,
+        OPIS = P_OPIS,
+        ZNIZKA_PROC = P_ZNIZKA_PROC,
+        ZNIZKA_KWOT = P_ZNIZKA_KWOT,
+        DATA_OD = P_DATA_OD,
+        DATA_DO = P_DATA_DO,
+        ID_PRACOWNIKA = P_ID_PRACOWNIKA
+    WHERE
+        promocja.id_promocji = P_ID_PROMOCJI ;
+END //
+
+-- [86] Pobranie przegl¹dów pracownika o id
+
+DELIMITER //
+CREATE PROCEDURE pobierz_przeglady_pracownika(
+    p_id_pracownika INT(8)
+) 
+BEGIN 
+SELECT * FROM przeglad WHERE przeglad.id_pracownika = p_id_pracownika;
+END //
+
+
+-- [87] Usuñ przegl¹d
+
+DELIMITER //
+CREATE PROCEDURE usun_przeglad(
+	p_id INT(8)
+)
+BEGIN
+	DELETE FROM przeglad_sprzet WHERE przeglad_sprzet.id_przegladu = p_id;
+    DELETE FROM przeglad WHERE przeglad.id_przegladu = p_id;
+END //
+
+-- [88] Usuñ raport odpadów
+
+DELIMITER //
+CREATE PROCEDURE usun_odpady(
+	p_id INT(8)
+)
+BEGIN
+	DELETE FROM raport_odpadow WHERE raport_odpadow.id_raportu = p_id;
+END //
+
+-- [89] Policz pracownikowi zarobki
+
+DELIMITER //
+CREATE PROCEDURE zarobki(
+    p_id_pracownika INT(8)
+) 
+BEGIN  
+SELECT SUM(u.cena) as zarobki FROM wizyta w JOIN usluga u ON w.id_uslugi = u.id_uslugi WHERE 
+MONTH(w.data) = MONTH(CURRENT_DATE()) AND YEAR(w.data)= YEAR(CURRENT_DATE()) AND w.id_pracownika = 1 
+AND w.status = 'OPLACONE';
+END //
+
+-- [90] Wypisz nazwiska pracowników bior¹cych udzia³ w wydarzeniu
+
+DELIMITER //
+CREATE PROCEDURE pracownik_na_wydarzeniu(
+	P_ID_WYDARZENIA INT(8)
+) 
+BEGIN 
+	SELECT pracownik.id_pracownika as id_pracownika, pracownik.imie as imie, pracownik.nazwisko as nazwisko FROM pracownik JOIN wydarzenie_pracownik ON pracownik.id_pracownika = wydarzenie_pracownik.id_pracownika WHERE wydarzenie_pracownik.id_wydarzenia = p_id_wydarzenia;
+END //
+
+-- [91] Usuñ szkolenie
+
+DELIMITER //
+CREATE PROCEDURE usun_szkolenie(
+    p_id INT(8)
+)
+BEGIN
+    DELETE FROM wydarzenie_pracownik WHERE wydarzenie_pracownik.id_wydarzenia = p_id;
+    DELETE FROM wydarzenie WHERE wydarzenie.id_wydarzenia = p_id;
+END //
+
+-- [0] Zainicjuj bazê przyk³adowymi danymi
+
+DELIMITER //
+CREATE PROCEDURE przykladowe_dane() 
+BEGIN 
+	CALL utworz_karte_klienta(1, 1, 1, 1, 1, 1, 1, 1, 1, 'dobra', 'dobra jakosc', 'brak', 'brak');
+    CALL utworz_status_klienta(0, 50, 0, 0, 'nowy klient');
+	CALL utworz_klienta('adres@poczta.pl', 'haslo', 'Jan', 'Kowalski', 'Warszawska', '12-130', 'Krakow', curdate(), 120130140);
+    -- CALL przypisz_karte_klienta('adres@poczta.pl');
+    CALL utworz_pracownika('haslo1', 'Grazyna', 'Kwiatkowska', 'Krakowska', '12-130', 'Krakow', curdate(), 144144144, 'adres1@poczta.pl', 1314509876, curdate(), 'brak', 0, 0, 0, 'brak', 'brak', 'brak', 'brak', 'brak', 'brak', 'bark', 0);
+    CALL dodaj_uprawnienie('podstawowe', 'podstawowe uprawnienia');
+ --   CALL nadaj_uprawnienia_sys(1, 'podstawowe');
+    CALL dodaj_promocje('przecena', 'pierwsza przecena', 10, 20, curdate(), curdate(), 1);
+    CALL dodaj_produkt_sprzedaz('nazwa', 'opis', 50, 10);
+    CALL dodaj_produkt_uzytkowy('nazwa', 'opis', 30, 5, 'czarny');
+    CALL dodaj_styl('nazwa', 'opis');
+    CALL dodaj_usluge('typ', 'nazwa', 'opis', 1, 50, 30, 'brak');
+    CALL dodaj_styl_usl(1, 1);
+    CALL koszyk(curdate(), 'NIEPOTWIERDZONE', 1);
+    CALL koszyk_platnosc('PLATNOSC_PRZY_ODBIORZE', 'tytul', 'NIEOPLACONE', 1);
+    CALL produkt_do_koszyka(1, 1, 2);
+    CALL wizyta(curdate(), curtime(), 'DO_ZATWIERDZENIA', 1, 1, 1);
+    CALL sprawozdanie('SPORALA', 'tytul', 'opis', curdate(), 1);
+    CALL dodaj_sprzet('nazwa', 'opis', curdate(), curdate(), 'uwagi');
+    CALL zadanie_gosp('tytul', 'opis', curdate(), curdate(), 1);
+    CALL odpady('tytul', '150110', curdate(), 2, 10, 1);
+    CALL przeglad('tytul', 'opis', curdate(), 1, 1);
+    CALL dodaj_aktualnosc('tytul', 'tresc', curdate(), curdate(), 1);
+    CALL dodaj_wydarzenie('KONGRES', 'nazwa', 'opis', 'miasto', '12-130', 'ulica', curdate(), curdate(), 100, 1);
+    CALL lista_zakupow(curdate(), 'opis', 1);
+    CALL dodaj_do_listy(1, 1, 4);
+    CALL dodaj_na_wydarzenie(1, 1);
+    CALL zglos_nieobecnosc(curdate(), curdate(), 'powod', 1, 'NIEPOTWIERDZONE');
+    CALL wiadomosc(curdate(), curtime(), 'tytul', 'tresc', 'WYSLANA', 1, 2);
+    CALL przypomnienie(curdate(), curtime(), 'tytul', 'tresc', 'WYSLANA', 1);
+END //

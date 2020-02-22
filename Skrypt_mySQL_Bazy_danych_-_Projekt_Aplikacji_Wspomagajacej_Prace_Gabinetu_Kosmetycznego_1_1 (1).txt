@@ -1,0 +1,473 @@
+CREATE DATABASE projektgabinetgracjadb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE karta_klienta 
+  ( 
+     id_karty      INT(8) PRIMARY KEY AUTO_INCREMENT,
+     p1            BOOLEAN NOT NULL, 
+     p2            BOOLEAN NOT NULL, 
+     p3            BOOLEAN NOT NULL, 
+     p4            BOOLEAN NOT NULL, 
+     p5            BOOLEAN NOT NULL, 
+     p6            BOOLEAN NOT NULL, 
+     p7            BOOLEAN NOT NULL, 
+     p8            BOOLEAN NOT NULL, 
+     p9            BOOLEAN NOT NULL, 
+     ocena_skory   CHAR(255) NOT NULL, 
+     rodzaj_jakosc CHAR(255) NOT NULL, 
+     wrazliwosc    CHAR(255) NOT NULL, 
+     inne_uwagi    VARCHAR(5000) NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ALTER TABLE karta_klienta AUTO_INCREMENT = 1;
+
+CREATE TABLE status_klienta 
+  ( 
+     id_statusu  INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     punkty_od   INT(8) NOT NULL, 
+     punkty_do   INT(8) NOT NULL, 
+     znizka_proc INT(8) NOT NULL, 
+     znizka_kwot INT(8) NOT NULL,
+     nazwa       CHAR(255) NOT NULL
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE status_klienta AUTO_INCREMENT = 1;
+
+CREATE TABLE wiadomosc 
+  ( 
+     id_wiadomosci     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     data              DATE NOT NULL, 
+     godzina           TIME NOT NULL, 
+     tytul             CHAR(255) NOT NULL, 
+     tresc             CHAR(255) NOT NULL, 
+     status_wiadomosci ENUM('WYSLANA', 'ODCZYTANA') NOT NULL, 
+     id_konta_od       INT(8) NOT NULL, 
+     id_konta_do       INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;  
+
+ALTER TABLE wiadomosc AUTO_INCREMENT = 1;
+
+CREATE TABLE raport_odpadow 
+  ( 
+     id_raportu    INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     tytul_raportu CHAR(255) NOT NULL, 
+     typ_odpadow   ENUM('150110', '150107', '150102', '160214', '180103') NOT NULL, 
+     data          DATE NOT NULL, 
+     ilos          INT(8) NOT NULL, 
+     koszt         INT(8) NOT NULL, 
+     id_pracownika INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE raport_odpadow AUTO_INCREMENT = 1;
+
+CREATE TABLE zadanie_gospodarcze 
+  ( 
+     id_zadania    INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     tytul_zadania CHAR(255) NOT NULL, 
+     opis_zadania  VARCHAR(5000) NULL, 
+     data_od       DATE NOT NULL, 
+     data_do       DATE NOT NULL, 
+     id_pracownika INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE zadanie_gospodarcze AUTO_INCREMENT = 1;
+
+CREATE TABLE sprawozdanie 
+  ( 
+     id_sprawozdania INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     typ             ENUM ('SPORALA', 'KONTROLA STACJI SANITARNO EPIDEMIOLOGICZNEJ') NOT NULL, 
+     tytul           CHAR(255) NOT NULL, 
+     tresc           VARCHAR(5000) NOT NULL, 
+     data            DATE NOT NULL, 
+     id_pracownika   INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;  
+
+ALTER TABLE sprawozdanie AUTO_INCREMENT = 1;
+
+CREATE TABLE przeglad 
+  ( 
+     id_przegladu    INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     tytul_przegladu CHAR(255) NOT NULL, 
+     opis_przegladu  VARCHAR(5000) NULL, 
+     data            DATE NOT NULL, 
+     id_pracownika   INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci; 
+
+ALTER TABLE przeglad AUTO_INCREMENT = 1;
+
+CREATE TABLE przeglad_sprzet 
+  ( 
+     id_przegladu INT(8) NOT NULL, 
+     id_sprzetu   INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+CREATE TABLE sprzet 
+  ( 
+     id_sprzetu     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     nazwa_sprzetu  CHAR(255) NOT NULL, 
+     opis_sprzetu   VARCHAR(5000) NULL, 
+     data_zakupu    DATE NOT NULL, 
+     data_gwarancji DATE NOT NULL, 
+     uwagi          VARCHAR(5000) NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE sprzet AUTO_INCREMENT = 1;
+
+CREATE TABLE klient 
+  ( 
+     id_klienta     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     imie           CHAR(255) NOT NULL, 
+     nazwisko       CHAR(255) NOT NULL, 
+     ulica          CHAR(255) NOT NULL, 
+     kod_pocztowy   CHAR(10) NOT NULL, 
+     miejscowosc   CHAR(255) NOT NULL, 
+     data_urodzenia DATE NOT NULL, 
+     telefon        INT(8) NOT NULL, 
+     e_mail         CHAR(255) NOT NULL, 
+     ilosc_punktow  INT(8) NOT NULL, 
+     id_karty       INT(8) NOT NULL, 
+     id_statusu     INT(8) NOT NULL, 
+     id_konta       INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE klient AUTO_INCREMENT = 1;
+
+CREATE TABLE konto 
+  ( 
+     id_konta  INT(8) PRIMARY KEY  AUTO_INCREMENT,
+     haslo     CHAR(255) NOT NULL, 
+     typ_konta ENUM('PRACOWNIK', 'ADMINISTRATOR', 'KLIENT') 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE konto AUTO_INCREMENT = 1;
+
+CREATE TABLE przypomnienie 
+  ( 
+     id_przypomnienia     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     data                 DATE NOT NULL, 
+     godzina              TIME NOT NULL, 
+     tytul                CHAR(255) NOT NULL, 
+     tresc                CHAR(255) NOT NULL, 
+     status_przypomnienia ENUM('WYSLANA', 'ODCZYTANA') NOT NULL, 
+     id_konta_do          INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE przypomnienie AUTO_INCREMENT = 1;
+
+CREATE TABLE pracownik 
+  ( 
+     id_pracownika     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     imie              CHAR(255) NOT NULL, 
+     nazwisko          CHAR(255) NOT NULL, 
+     ulica             CHAR(255) NOT NULL, 
+     kod_pocztowy      CHAR(10) NOT NULL, 
+     miejscowosc CHAR(255) NOT NULL, 
+     data_urodzenia    DATE NOT NULL, 
+     telefon           INT(8) NOT NULL, 
+     e_mail            CHAR(255) NOT NULL, 
+     pesel             BIGINT(21) NOT NULL, 
+     data_zatrudnienia DATE NOT NULL, 
+     certyfikaty       VARCHAR(5000) NULL, 
+     id_konta          INT(8) NOT NULL, 
+     id_ksiazeczki     INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE pracownik AUTO_INCREMENT = 1;
+
+CREATE TABLE lista_zakupow 
+  ( 
+     id_listy        INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     data_utworzenia DATE NOT NULL, 
+     opis            CHAR(255) NULL, 
+     id_pracownika   INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE lista_zakupow AUTO_INCREMENT = 1;
+
+CREATE TABLE lista_przedmiot 
+  ( 
+     id_listy    INT(8) NOT NULL, 
+     id_produktu INT(8) NOT NULL, 
+     ilosc       INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+CREATE TABLE produkt_uzytkowy 
+  ( 
+     id_produktu INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     nazwa       CHAR(255) NOT NULL, 
+     opis        VARCHAR(5000) NULL, 
+     cena        INT(8) NOT NULL, 
+     ilosc       INT(8) NOT NULL, 
+     kolor       CHAR(255) NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE produkt_uzytkowy AUTO_INCREMENT = 1;
+
+CREATE TABLE nieobecnosc 
+  ( 
+     id_nieobecnosci INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     data_od         DATE NOT NULL, 
+     data_do         DATE NOT NULL, 
+     powod           CHAR(255) NOT NULL, 
+     id_pracownika   INT(8) NOT NULL,
+     status          ENUM('NIEPOTWIERDZONE', 'POTWIERDZONE') NOT NULL
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE nieobecnosc AUTO_INCREMENT = 1;
+
+CREATE TABLE wydarzenie_pracownik 
+  ( 
+     id_wydarzenia INT(8) NOT NULL, 
+     id_pracownika INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+CREATE TABLE wydarzenie 
+  ( 
+     id_wydarzenia INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     typ           ENUM('KONGRES', 'SZKOLENIE', 'TARGI_KOSMETYCZNE') NOT NULL, 
+     nazwa         CHAR(255) NOT NULL, 
+     opis          CHAR(255) NOT NULL, 
+     ulica         CHAR(255) NOT NULL, 
+     kod_pocztowy  CHAR(10) NOT NULL, 
+     miejscowosc CHAR(255) NOT NULL, 
+     data_od       DATE NOT NULL, 
+     data_do       DATE NOT NULL, 
+     kosz          INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE wydarzenie AUTO_INCREMENT = 1;
+
+CREATE TABLE pracownik_upr_admin 
+  ( 
+     id_uprawnienia_sys INT(8) NOT NULL, 
+     id_pracownika      INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+CREATE TABLE uprawnienie_system 
+  ( 
+     id_uprawnienia_sys INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     nazwa              CHAR(255) NOT NULL, 
+     opis               CHAR(255) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE uprawnienie_system AUTO_INCREMENT = 1;
+
+CREATE TABLE usluga 
+  ( 
+     id_uslugi          INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     typ_uslugi         CHAR(255) NOT NULL, 
+     nazwa              CHAR(255) NOT NULL, 
+     opis               VARCHAR(5000) NOT NULL, 
+     czy_karta          BOOLEAN NOT NULL, 
+     cena               INT(8) NOT NULL, 
+     czas_trwania       INT(8) NOT NULL, 
+     wskazowki          VARCHAR(5000) NULL, 
+     id_promocji        INT(8) NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE usluga AUTO_INCREMENT = 1;
+
+CREATE TABLE styl_usluga 
+  ( 
+     id_uslugi INT(8) NOT NULL, 
+     id_stylu  INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+CREATE TABLE styl 
+  ( 
+     id_stylu INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     nazwa    CHAR(255) NOT NULL, 
+     opis     VARCHAR(5000) NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE styl AUTO_INCREMENT = 1;
+
+CREATE TABLE promocja 
+  ( 
+     id_promocji   INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     nazwa         CHAR(255) NOT NULL, 
+     opis          VARCHAR(5000) NOT NULL, 
+     znizka_proc   INT(8) NULL, 
+     znizka_kwot   INT(8) NULL, 
+     data_od       DATE NOT NULL, 
+     data_do       DATE NOT NULL, 
+     id_pracownika INT(8) NOT NULL 
+   )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE promocja AUTO_INCREMENT = 1;
+
+CREATE TABLE produkt_sprzedaz 
+  ( 
+     id_produktu_s INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     nazwa         CHAR(255) NOT NULL, 
+     opis          VARCHAR(5000) NOT NULL, 
+     cena          INT(8) NOT NULL, 
+     ilosc         INT(8) NOT NULL, 
+     id_promocji   INT(8) NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE produkt_sprzedaz AUTO_INCREMENT = 1;
+
+CREATE TABLE wizyta 
+  ( 
+     id_wizyty     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     data          DATE NOT NULL, 
+     godzina       TIME NOT NULL, 
+     status        ENUM('DO_ZATWIERDZENIA', 'ODRZUCONE', 'POTWIERDZONE', 
+     'OPLACONE') NOT 
+     NULL, 
+     id_pracownika INT(8) NOT NULL, 
+     id_klienta    INT(8) NOT NULL, 
+     id_uslugi     INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE wizyta AUTO_INCREMENT = 1;
+
+CREATE TABLE koszyk_produkt 
+  ( 
+     id_koszyka  INT(8) NOT NULL, 
+     id_produktu_s INT(8) NOT NULL, 
+     ilosc       INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;  
+
+CREATE TABLE koszyk 
+  ( 
+     id_koszyka      INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     data_utworzenia DATE NOT NULL, 
+     koszt_calkowity INT(8) NOT NULL, 
+     status_koszyka  ENUM('NIEPOTWIERDZONE', 'W REALIZACJI', 'WYSLANE') NOT NULL, 
+     id_klienta      INT(8) NOT NULL
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE koszyk AUTO_INCREMENT = 1;
+
+CREATE TABLE platnosc 
+  ( 
+     id_platnosci     INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     typ_platnosci    ENUM('PLATNOSC_PRZY_ODBIORZE', 'PRZELEW') NOT NULL, 
+     tytul            CHAR(255) NULL, 
+     status_platnosci ENUM('OPLACONE', 'NIEOPLACONE') NOT NULL,
+     id_koszyka       INT(8) NOT NULL
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE platnosc AUTO_INCREMENT = 1;
+
+CREATE TABLE ksiazeczka_zdrowia 
+  ( 
+     id_ksiazeczki        INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     rozrusznik_serca     BOOLEAN NOT NULL, 
+     hermofilia           BOOLEAN NOT NULL, 
+     luszczyca            BOOLEAN NOT NULL, 
+     alergia              CHAR(255) NULL, 
+     przebarwienie        CHAR(255) NULL, 
+     choroba_zakazna      CHAR(255) NULL, 
+     zaburzenia_ukrwienia CHAR(255) NULL, 
+     opryszczka           CHAR(255) NULL, 
+     goraczka             CHAR(255) NULL, 
+     oslabienie           CHAR(255) NULL, 
+     ciaza                BOOLEAN NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE ksiazeczka_zdrowia AUTO_INCREMENT = 1;
+
+CREATE TABLE aktualnosc 
+  ( 
+     id_aktualnosci INT(8) PRIMARY KEY AUTO_INCREMENT, 
+     tytul          CHAR(255) NOT NULL, 
+     tresc          VARCHAR(5000) NOT NULL, 
+     data_od        DATE NOT NULL, 
+     data_do        DATE NOT NULL, 
+     id_pracownika  INT(8) NOT NULL 
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE aktualnosc AUTO_INCREMENT = 1;
+
+CREATE TABLE pracownik_usluga
+  ( 
+     id_pracownika  INT(8) NOT NULL,
+     id_uslugi      INT(8) NOT NULL
+  )DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; 
+
+ALTER TABLE klient 
+  ADD FOREIGN KEY (id_karty) REFERENCES karta_klienta(id_karty), 
+  ADD FOREIGN KEY (id_statusu) REFERENCES status_klienta(id_statusu), 
+  ADD FOREIGN KEY (id_konta) REFERENCES konto(id_konta); 
+
+ALTER TABLE wiadomosc 
+  ADD FOREIGN KEY (id_konta_od) REFERENCES konto(id_konta), 
+  ADD FOREIGN KEY (id_konta_od) REFERENCES konto(id_konta); 
+
+ALTER TABLE raport_odpadow 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE zadanie_gospodarcze 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE sprawozdanie 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE przeglad 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE aktualnosc 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE przeglad_sprzet 
+  ADD FOREIGN KEY (id_przegladu) REFERENCES przeglad(id_przegladu), 
+  ADD FOREIGN KEY (id_sprzetu) REFERENCES sprzet(id_sprzetu); 
+
+ALTER TABLE przypomnienie 
+  ADD FOREIGN KEY (id_konta_do) REFERENCES konto(id_konta); 
+
+ALTER TABLE nieobecnosc 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE lista_zakupow 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE lista_przedmiot 
+  ADD FOREIGN KEY (id_produktu) REFERENCES produkt_uzytkowy(id_produktu), 
+  ADD FOREIGN KEY (id_listy) REFERENCES lista_zakupow(id_listy); 
+
+ALTER TABLE wydarzenie_pracownik 
+  ADD FOREIGN KEY (id_wydarzenia) REFERENCES wydarzenie(id_wydarzenia), 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE pracownik 
+  ADD FOREIGN KEY (id_konta) REFERENCES konto(id_konta), 
+  ADD FOREIGN KEY (id_ksiazeczki) REFERENCES ksiazeczka_zdrowia(id_ksiazeczki); 
+
+ALTER TABLE styl_usluga 
+  ADD FOREIGN KEY (id_uslugi) REFERENCES usluga(id_uslugi), 
+  ADD FOREIGN KEY (id_stylu) REFERENCES styl(id_stylu); 
+
+ALTER TABLE usluga 
+  ADD FOREIGN KEY (id_promocji) REFERENCES promocja(id_promocji); 
+
+ALTER TABLE promocja 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE produkt_sprzedaz 
+  ADD FOREIGN KEY (id_promocji) REFERENCES promocja(id_promocji); 
+
+ALTER TABLE koszyk_produkt 
+  ADD FOREIGN KEY (id_koszyka) REFERENCES koszyk(id_koszyka), 
+  ADD FOREIGN KEY (id_produktu_s) REFERENCES produkt_sprzedaz(id_produktu_s); 
+
+ALTER TABLE koszyk 
+  ADD FOREIGN KEY (id_klienta) REFERENCES klient(id_klienta); 
+
+ALTER TABLE platnosc
+  ADD FOREIGN KEY (id_koszyka) REFERENCES koszyk(id_koszyka); 
+
+ALTER TABLE pracownik_upr_admin 
+  ADD FOREIGN KEY (id_uprawnienia_sys) REFERENCES uprawnienie_system( 
+  id_uprawnienia_sys), 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika); 
+
+ALTER TABLE wizyta 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika), 
+  ADD FOREIGN KEY (id_uslugi) REFERENCES usluga(id_uslugi), 
+  ADD FOREIGN KEY (id_klienta) REFERENCES klient(id_klienta);
+
+ALTER TABLE pracownik_usluga
+  ADD FOREIGN KEY (id_uslugi) REFERENCES usluga(id_uslugi), 
+  ADD FOREIGN KEY (id_pracownika) REFERENCES pracownik(id_pracownika);
