@@ -1,6 +1,7 @@
 # Baza danych aplikacji webowej wspomagającej pracę gabinetu kosmetycznego
 
 System wspomagający pracę gabinetu kosmetycznego składa się z bazy danych odpowiedzialnej za przechowywanie wszystkich niezbędnych danych do funkcjonowania firmy kosmetycznej, na przykład: dane osobowe pracowników, spis raportów i aktualności zamieszczonych w systemie czy spis wszystkich wizyt wykonanych w gabinecie. 
+
 Odpowiedzialna jest również za przechowywanie wszystkich wiadomości i powiadomień generowanych przez system. Ponadto baza danych zawiera również dane niezbędne do funkcjonowania aplikacji klienckiej hostowanej na serwerze webowym, która umożliwia rezerwowanie wizyt przez klientów, przedstawianie zakresu usług gabinetu jak i oferty sprzedażowej czy powiadamianie klienta o nowej promocji.
 
 Na niektórych diagramach została przedstawiowa tylko część funkcjonalnośći z uwagi na ich dużą liczbę.
