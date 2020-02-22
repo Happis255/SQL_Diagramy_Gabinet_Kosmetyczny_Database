@@ -6,10 +6,10 @@ Odpowiedzialna jest również za przechowywanie wszystkich wiadomości i powiado
 Na niektórych diagramach została przedstawiowa tylko część funkcjonalnośći z uwagi na ich dużą liczbę.
 
 Wykorzystywane języki:
-•	Java oraz JavaServer – aplikacja systemu
-•	MySQL – baza danych 
-•	HTML oraz CSS
-•	Bootstrap Framework
+- Java oraz JavaServer – aplikacja systemu
+- MySQL – baza danych
+- HTML oraz CSS
+- Bootstrap Framework
 
 ### Funkcjonalności aplikacji (spełniane przez Bazę Danych)
 
